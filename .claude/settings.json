@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(npm install --no-fund --no-audit)",
+      "PowerShell($env:NEXT_PUBLIC_SUPABASE_URL='https://placeholder.supabase.co'; $env:NEXT_PUBLIC_SUPABASE_ANON_KEY='placeholder'; $env:SUPABASE_SERVICE_ROLE_KEY='placeholder'; npm run build)",
+      "PowerShell(node \"C:\\\\Users\\\\drodm\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-drodm-Documents-GitHub-CampeonatoTrucoFam-liaLima2026\\\\d2847054-402b-49c0-b737-80ef3509fbdd\\\\scratchpad\\\\test-upload.mjs\")",
+      "PowerShell(node _tmp_test_upload.mjs)"
+    ]
+  }
+}
