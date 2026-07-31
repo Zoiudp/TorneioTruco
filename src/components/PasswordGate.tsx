@@ -2,30 +2,59 @@
 
 import { useEffect, useState } from "react";
 
-// Porta de senha simples. Guarda a senha na sessionStorage e a repassa aos
-// filhos. A validação real acontece no servidor (Route Handlers) a cada ação;
-// aqui é só para revelar a interface de trabalho.
+// Porta de senha. Valida a senha no servidor ANTES de liberar a interface,
+// dando retorno imediato ("senha incorreta") em vez de deixar entrar e depois
+// derrubar o usuário numa ação. Guarda a senha na sessionStorage.
 export function PasswordGate({
   storageKey,
+  role,
   title,
   children,
 }: {
   storageKey: string;
+  role: "admin" | "judge";
   title: string;
   children: (password: string, logout: () => void) => React.ReactNode;
 }) {
   const [password, setPassword] = useState<string | null>(null);
   const [input, setInput] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [checking, setChecking] = useState(false);
 
   useEffect(() => {
     const saved = sessionStorage.getItem(storageKey);
     if (saved) setPassword(saved);
   }, [storageKey]);
 
-  function enter() {
-    if (!input.trim()) return;
-    sessionStorage.setItem(storageKey, input.trim());
-    setPassword(input.trim());
+  async function enter() {
+    const pw = input.trim();
+    if (!pw) return;
+    setChecking(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/auth?role=${role}`, {
+        method: "POST",
+        headers: { "x-password": pw },
+      });
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        const cfg = json.server_config;
+        const missing =
+          cfg && ((role === "admin" && !cfg.admin_password_set) || (role === "judge" && !cfg.judge_password_set));
+        setError(
+          missing
+            ? "Servidor sem senha configurada. Defina as variáveis de ambiente na Vercel e refaça o deploy."
+            : "Senha incorreta."
+        );
+        return;
+      }
+      sessionStorage.setItem(storageKey, pw);
+      setPassword(pw);
+    } catch {
+      setError("Falha de conexão com o servidor.");
+    } finally {
+      setChecking(false);
+    }
   }
 
   function logout() {
@@ -46,13 +75,20 @@ export function PasswordGate({
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && enter()}
             placeholder="Senha"
+            autoComplete="current-password"
             className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/40 outline-none focus:border-gold-400"
           />
+          {error && (
+            <p className="mt-3 text-sm text-red-300 bg-red-500/15 border border-red-500/30 rounded-lg px-3 py-2">
+              {error}
+            </p>
+          )}
           <button
             onClick={enter}
-            className="mt-4 w-full py-3 rounded-lg bg-gold-500 hover:bg-gold-400 text-felt-900 font-extrabold transition"
+            disabled={checking}
+            className="mt-4 w-full py-3 rounded-lg bg-gold-500 hover:bg-gold-400 disabled:opacity-50 text-felt-900 font-extrabold transition"
           >
-            Entrar
+            {checking ? "Verificando…" : "Entrar"}
           </button>
           <a href="/" className="block mt-4 text-white/50 text-sm hover:text-white">
             ← Voltar

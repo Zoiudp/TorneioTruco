@@ -31,8 +31,9 @@ function JudgePanel({ password, logout }: { password: string; logout: () => void
       });
       const json = await res.json();
       if (!res.ok) {
-        setError(json.error ?? "Erro ao registrar");
-        if (res.status === 401) logout();
+        setError(
+          res.status === 401 ? "Senha de juiz inválida (verifique as variáveis na Vercel)." : json.error ?? "Erro ao registrar"
+        );
       }
       refetch();
     } catch {
@@ -117,7 +118,7 @@ function JudgePanel({ password, logout }: { password: string; logout: () => void
 
 export default function JuizPage() {
   return (
-    <PasswordGate storageKey="truco-judge-pw" title="⚖️ Acesso do Juiz">
+    <PasswordGate storageKey="truco-judge-pw" role="judge" title="⚖️ Acesso do Juiz">
       {(password, logout) => <JudgePanel password={password} logout={logout} />}
     </PasswordGate>
   );

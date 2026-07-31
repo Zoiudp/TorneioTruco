@@ -37,26 +37,26 @@ export default function Telao() {
 
   return (
     <main className="min-h-screen flex flex-col">
-      <header className="flex items-center justify-between px-6 py-3 border-b border-white/10">
-        <div className="flex items-center gap-3">
-          <span className="text-3xl">🃏</span>
-          <h1 className="text-xl md:text-2xl font-black text-gold-400 leading-tight">
+      <header className="flex items-center justify-between gap-2 px-3 sm:px-6 py-3 border-b border-white/10 flex-wrap">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <span className="text-2xl sm:text-3xl">🃏</span>
+          <h1 className="text-base sm:text-xl md:text-2xl font-black text-gold-400 leading-tight truncate">
             {settings?.tournament_name ?? "Campeonato de Truco — Família Lima 2026"}
           </h1>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto max-w-full">
           {scenes.map((s, i) => (
             <button
               key={s}
               onClick={() => setSceneIdx(i)}
-              className={`px-3 py-1 rounded-full text-xs uppercase font-bold tracking-wide transition ${
+              className={`shrink-0 px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs uppercase font-bold tracking-wide transition ${
                 i === sceneIdx ? "bg-gold-400 text-felt-900" : "bg-white/10 text-white/60"
               }`}
             >
               {s}
             </button>
           ))}
-          <Link href="/" className="ml-2 text-white/40 hover:text-white text-sm">✕</Link>
+          <Link href="/" className="shrink-0 ml-1 sm:ml-2 text-white/40 hover:text-white text-sm">✕</Link>
         </div>
       </header>
 

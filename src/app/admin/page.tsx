@@ -28,8 +28,9 @@ function AdminPanel({ password, logout }: { password: string; logout: () => void
     });
     const json = await res.json().catch(() => ({}));
     if (!res.ok) {
-      if (res.status === 401) logout();
-      throw new Error(json.error ?? "Erro");
+      throw new Error(
+        res.status === 401 ? "Senha de admin inválida (verifique as variáveis na Vercel)." : json.error ?? "Erro"
+      );
     }
     return json;
   }
@@ -256,7 +257,7 @@ function AdminPanel({ password, logout }: { password: string; logout: () => void
 
 export default function AdminPage() {
   return (
-    <PasswordGate storageKey="truco-admin-pw" title="🛠️ Acesso do Organizador">
+    <PasswordGate storageKey="truco-admin-pw" role="admin" title="🛠️ Acesso do Organizador">
       {(password, logout) => <AdminPanel password={password} logout={logout} />}
     </PasswordGate>
   );

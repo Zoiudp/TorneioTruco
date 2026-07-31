@@ -5,6 +5,24 @@ import type { Match, Team } from "@/lib/types";
 import { teamById } from "@/lib/format";
 import { DuplaCard } from "./DuplaCard";
 
+// Tamanho do avatar conforme a largura da tela (evita estouro no celular).
+function useAvatarSize() {
+  const [size, setSize] = useState(96);
+  useEffect(() => {
+    const compute = () => {
+      const w = window.innerWidth;
+      if (w < 380) setSize(58);
+      else if (w < 640) setSize(74);
+      else if (w < 1024) setSize(110);
+      else setSize(140);
+    };
+    compute();
+    window.addEventListener("resize", compute);
+    return () => window.removeEventListener("resize", compute);
+  }, []);
+  return size;
+}
+
 // Carrossel rotativo dos confrontos (foco nos que estão ao vivo / a seguir).
 export function MatchCarousel({
   matches,
@@ -28,6 +46,7 @@ export function MatchCarousel({
   }, [matches]);
 
   const [idx, setIdx] = useState(0);
+  const avatarSize = useAvatarSize();
 
   useEffect(() => {
     if (queue.length <= 1) return;
@@ -52,31 +71,31 @@ export function MatchCarousel({
   const teamB = teamById(teams, m.team_b_id);
 
   return (
-    <div key={m.id} className="animate-fade-in flex flex-col items-center gap-6">
-      <div className="flex items-center gap-3">
-        <span className="px-4 py-1 rounded-full bg-white/10 text-gold-400 font-bold uppercase tracking-wide">
+    <div key={m.id} className="animate-fade-in flex flex-col items-center gap-4 sm:gap-6 w-full">
+      <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-center">
+        <span className="px-3 sm:px-4 py-1 rounded-full bg-white/10 text-gold-400 font-bold uppercase tracking-wide text-sm sm:text-base text-center">
           {m.round_label ?? (m.phase === "group" ? "Grupos" : "Mata-mata")}
         </span>
         {m.status === "live" && (
-          <span className="px-3 py-1 rounded-full bg-red-500/90 text-white font-bold animate-pulse">
+          <span className="px-3 py-1 rounded-full bg-red-500/90 text-white font-bold animate-pulse text-sm sm:text-base">
             AO VIVO
           </span>
         )}
       </div>
 
-      <div className="flex items-center justify-center gap-4 md:gap-10">
-        <DuplaCard team={teamA} avatarSize={140} highlight={m.winner_id === teamA?.id} />
+      <div className="flex items-center justify-center gap-2 sm:gap-6 md:gap-10 w-full max-w-full">
+        <DuplaCard team={teamA} avatarSize={avatarSize} highlight={m.winner_id === teamA?.id} />
 
-        <div className="flex flex-col items-center">
-          <div className="text-6xl md:text-8xl font-black text-white tabular-nums">
+        <div className="flex flex-col items-center shrink-0">
+          <div className="text-4xl sm:text-6xl md:text-8xl font-black text-white tabular-nums">
             {m.games_a}
-            <span className="text-gold-400 mx-2">×</span>
+            <span className="text-gold-400 mx-1 sm:mx-2">×</span>
             {m.games_b}
           </div>
-          <div className="text-white/50 uppercase text-sm tracking-widest mt-1">Melhor de 3</div>
+          <div className="text-white/50 uppercase text-[10px] sm:text-sm tracking-widest mt-1">Melhor de 3</div>
         </div>
 
-        <DuplaCard team={teamB} avatarSize={140} highlight={m.winner_id === teamB?.id} />
+        <DuplaCard team={teamB} avatarSize={avatarSize} highlight={m.winner_id === teamB?.id} />
       </div>
 
       <div className="flex gap-1.5">
