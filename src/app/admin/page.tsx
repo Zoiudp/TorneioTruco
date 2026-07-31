@@ -8,7 +8,7 @@ import { PlayerAvatar } from "@/components/PlayerAvatar";
 import type { Settings } from "@/lib/types";
 
 function AdminPanel({ password, logout }: { password: string; logout: () => void }) {
-  const { teams, groups, matches, settings, loading, refetch } = useTournamentData();
+  const { teams, matches, settings, loading, refetch } = useTournamentData();
   const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [working, setWorking] = useState(false);
@@ -53,8 +53,6 @@ function AdminPanel({ password, logout }: { password: string; logout: () => void
     try {
       await api("/api/bracket", "POST", {
         action: "update-settings",
-        num_groups: Number(form.num_groups),
-        qualifiers_per_group: Number(form.qualifiers_per_group),
         best_of: Number(form.best_of),
         tournament_name: form.tournament_name,
       });
@@ -125,8 +123,8 @@ function AdminPanel({ password, logout }: { password: string; logout: () => void
     }
   }
 
-  const groupMatches = matches.filter((m) => m.phase === "group");
-  const groupsDone = groupMatches.length > 0 && groupMatches.every((m) => m.status === "done");
+  const knockoutMatches = matches.filter((m) => m.phase === "knockout");
+  const bracketGenerated = knockoutMatches.length > 0;
 
   return (
     <main className="min-h-screen max-w-4xl mx-auto p-4 space-y-8">
@@ -149,14 +147,6 @@ function AdminPanel({ password, logout }: { password: string; logout: () => void
           <label className="text-sm">
             Nome do torneio
             <input className="input" value={form.tournament_name ?? ""} onChange={(e) => setForm({ ...form, tournament_name: e.target.value })} />
-          </label>
-          <label className="text-sm">
-            Nº de grupos
-            <input type="number" min={1} className="input" value={form.num_groups ?? 2} onChange={(e) => setForm({ ...form, num_groups: Number(e.target.value) })} />
-          </label>
-          <label className="text-sm">
-            Classificados por grupo
-            <input type="number" min={1} className="input" value={form.qualifiers_per_group ?? 2} onChange={(e) => setForm({ ...form, qualifiers_per_group: Number(e.target.value) })} />
           </label>
           <label className="text-sm">
             Melhor de (jogos)
@@ -206,22 +196,35 @@ function AdminPanel({ password, logout }: { password: string; logout: () => void
         </div>
       </section>
 
-      {/* Geração da chave */}
+      {/* Geração da chave (mata-mata direto) */}
       <section className="bg-black/25 border border-white/10 rounded-2xl p-5 space-y-3">
-        <h2 className="font-extrabold text-gold-400 uppercase tracking-wide text-sm">Chave</h2>
+        <h2 className="font-extrabold text-gold-400 uppercase tracking-wide text-sm">Chave (mata-mata)</h2>
         <p className="text-white/60 text-sm">
-          {groups.length > 0 ? `${groups.length} grupos • ${groupMatches.length} jogos de grupo` : "Grupos ainda não gerados."}
-          {groupMatches.length > 0 && (groupsDone ? " • ✅ grupos concluídos" : " • ⏳ grupos em andamento")}
+          {teams.length} duplas cadastradas
+          {bracketGenerated
+            ? ` • ✅ chave gerada (${knockoutMatches.length} confrontos)`
+            : " • chave ainda não gerada"}
+        </p>
+        <p className="text-white/40 text-xs">
+          O sorteio é aleatório. Se o número de duplas não for potência de 2 (4, 8, 16…), as
+          primeiras sementes recebem “bye” na 1ª rodada. Gerar novamente refaz o sorteio e apaga o
+          andamento atual.
         </p>
         <div className="flex flex-wrap gap-3">
-          <button disabled={working} onClick={() => generate("generate-groups", "Isto recria os grupos e apaga jogos existentes. Continuar?")} className="btn-gold">
-            1) Gerar fase de grupos
+          <button
+            disabled={working}
+            onClick={() =>
+              generate(
+                "generate-bracket",
+                bracketGenerated ? "Isto refaz o sorteio e apaga o andamento atual. Continuar?" : undefined
+              )
+            }
+            className="btn-gold"
+          >
+            {bracketGenerated ? "Refazer sorteio da chave" : "Gerar chave de mata-mata"}
           </button>
-          <button disabled={working} onClick={() => generate("generate-knockout", groupsDone ? undefined : "Ainda há jogos de grupo pendentes. Gerar o mata-mata mesmo assim?")} className="btn-gold">
-            2) Gerar mata-mata
-          </button>
-          <button disabled={working} onClick={() => generate("reset-all", "APAGAR grupos, jogos e sementes? As duplas permanecem.")} className="btn-danger">
-            Resetar tudo
+          <button disabled={working} onClick={() => generate("reset-all", "APAGAR a chave e o andamento? As duplas permanecem.")} className="btn-danger">
+            Resetar chave
           </button>
         </div>
       </section>

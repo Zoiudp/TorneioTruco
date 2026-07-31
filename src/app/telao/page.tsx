@@ -4,24 +4,23 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useTournamentData } from "@/lib/useTournamentData";
 import { MatchCarousel } from "@/components/MatchCarousel";
-import { GroupTable } from "@/components/GroupTable";
 import { BracketView } from "@/components/BracketView";
 import { StatsBoard } from "@/components/StatsBoard";
 
-type Scene = "confrontos" | "grupos" | "chave" | "estatisticas";
+type Scene = "confrontos" | "chave" | "estatisticas";
 
 const SCENE_MS = 14000;
 
 export default function Telao() {
-  const { teams, matches, groups, stats, settings, loading } = useTournamentData();
-  const hasKnockout = matches.some((m) => m.phase === "knockout");
+  const { teams, matches, stats, settings, loading } = useTournamentData();
+  const hasBracket = matches.some((m) => m.phase === "knockout");
 
   const scenes = useMemo<Scene[]>(() => {
-    const s: Scene[] = ["confrontos", "grupos"];
-    if (hasKnockout) s.push("chave");
+    const s: Scene[] = ["confrontos"];
+    if (hasBracket) s.push("chave");
     s.push("estatisticas");
     return s;
-  }, [hasKnockout]);
+  }, [hasBracket]);
 
   const [sceneIdx, setSceneIdx] = useState(0);
   useEffect(() => {
@@ -33,7 +32,6 @@ export default function Telao() {
   }, [scenes.length, sceneIdx]);
 
   const scene = scenes[sceneIdx];
-  const qpg = settings?.qualifiers_per_group ?? 2;
 
   return (
     <main className="min-h-screen flex flex-col">
@@ -65,25 +63,9 @@ export default function Telao() {
           <div className="text-white/50 text-2xl">Carregando…</div>
         ) : scene === "confrontos" ? (
           <MatchCarousel matches={matches} teams={teams} />
-        ) : scene === "grupos" ? (
-          <div className="w-full max-w-6xl grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {groups.map((g) => (
-              <GroupTable
-                key={g.id}
-                group={g}
-                qualifiers={qpg}
-                stats={stats.filter((s) => s.group_id === g.id)}
-              />
-            ))}
-            {groups.length === 0 && (
-              <div className="text-white/50 text-xl col-span-full text-center">
-                Aguardando geração da fase de grupos…
-              </div>
-            )}
-          </div>
         ) : scene === "chave" ? (
           <div className="w-full max-w-6xl">
-            <h2 className="text-2xl font-black text-gold-400 mb-4 text-center">Mata-mata</h2>
+            <h2 className="text-2xl font-black text-gold-400 mb-4 text-center">Chaveamento — Mata-mata</h2>
             <BracketView matches={matches} teams={teams} />
           </div>
         ) : (

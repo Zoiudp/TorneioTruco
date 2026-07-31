@@ -3,14 +3,12 @@
 import Link from "next/link";
 import { useTournamentData } from "@/lib/useTournamentData";
 import { MatchCarousel } from "@/components/MatchCarousel";
-import { GroupTable } from "@/components/GroupTable";
 import { BracketView } from "@/components/BracketView";
 import { StatsBoard } from "@/components/StatsBoard";
 
 export default function Publico() {
-  const { teams, matches, groups, stats, settings, loading } = useTournamentData();
-  const hasKnockout = matches.some((m) => m.phase === "knockout");
-  const qpg = settings?.qualifiers_per_group ?? 2;
+  const { teams, matches, stats, settings, loading } = useTournamentData();
+  const hasBracket = matches.some((m) => m.phase === "knockout");
 
   return (
     <main className="min-h-screen max-w-3xl mx-auto p-4 space-y-8">
@@ -37,32 +35,14 @@ export default function Publico() {
 
           <section>
             <h2 className="text-lg font-extrabold text-gold-400 uppercase tracking-wide mb-3">
-              Grupos
+              Chaveamento
             </h2>
-            <div className="space-y-4">
-              {groups.map((g) => (
-                <GroupTable
-                  key={g.id}
-                  group={g}
-                  qualifiers={qpg}
-                  compact
-                  stats={stats.filter((s) => s.group_id === g.id)}
-                />
-              ))}
-              {groups.length === 0 && (
-                <p className="text-white/50 text-center py-4">Fase de grupos ainda não gerada.</p>
-              )}
-            </div>
-          </section>
-
-          {hasKnockout && (
-            <section>
-              <h2 className="text-lg font-extrabold text-gold-400 uppercase tracking-wide mb-3">
-                Mata-mata
-              </h2>
+            {hasBracket ? (
               <BracketView matches={matches} teams={teams} />
-            </section>
-          )}
+            ) : (
+              <p className="text-white/50 text-center py-4">Chave ainda não gerada.</p>
+            )}
+          </section>
 
           <section>
             <h2 className="text-lg font-extrabold text-gold-400 uppercase tracking-wide mb-3">
